@@ -1,4 +1,4 @@
-# Heterogeneity in Agent-based models 
+# Heterogeneity in Agent-based Models 
 This repository contains research and scripts for the PhD thesis, focusing on Agent-Based Models (ABMs) and model calibration techniques. This work explores how heterogeneity among agents affects model calibration and parameter identification using Bayesian computation and emotional contagion modeling.
 
 ## Research Highlights
