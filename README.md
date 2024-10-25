@@ -1,13 +1,13 @@
 # Heterogeneity in Agent-based models 
-This repository contains research and scripts for the PhD thesis, focusing on Agent-Based Models (ABM) and model calibration techniques. This work explores how heterogeneity among agents affects model calibration and parameter identification using Bayesian computation and emotional contagion modeling.
+This repository contains research and scripts for the PhD thesis, focusing on Agent-Based Models (ABMs) and model calibration techniques. This work explores how heterogeneity among agents affects model calibration and parameter identification using Bayesian computation and emotional contagion modeling.
 
 ## Research Highlights
-Examines how agent heterogeneity affects calibration accuracy.
-Discusses implications of parameter non-identification on policy decisions.
+- Examines how agent heterogeneity affects calibration accuracy.
+- Discusses implications of parameter non-identification on policy decisions.
 
 ## Contents
-[Emotional_Contagion.ipynb]([https://www.example.com](https://github.com/deborah-O/PhD-Data-Analytics-and-Society/blob/main/Emotional_Contagion.ipynb)): Jupyter Notebook on emotional contagion in heterogeneous vs. homogeneous agent models.
-[pyABC-Heterogeneous.ipynb](https://github.com/deborah-O/PhD-Data-Analytics-and-Society/blob/main/pyABC-Heterogeneous.ipynb) and [pyABC-Homogeneous.ipynb](https://github.com/deborah-O/PhD-Data-Analytics-and-Society/blob/main/pyABC-Homogeneous.ipynb): Notebooks for Bayesian calibration in heterogeneous and homogeneous scenarios.
+1. [Emotional_Contagion.ipynb]([https://www.example.com](https://github.com/deborah-O/PhD-Data-Analytics-and-Society/blob/main/Emotional_Contagion.ipynb)): Jupyter Notebook on emotional contagion in heterogeneous vs. homogeneous agent models.
+2. [pyABC-Heterogeneous.ipynb](https://github.com/deborah-O/PhD-Data-Analytics-and-Society/blob/main/pyABC-Heterogeneous.ipynb) and [pyABC-Homogeneous.ipynb](https://github.com/deborah-O/PhD-Data-Analytics-and-Society/blob/main/pyABC-Homogeneous.ipynb): Notebooks for Bayesian calibration in heterogeneous and homogeneous scenarios.
 
 ## Project Summary
 Agent-based models are an incredibly flexible tool that among other things, allow modellers to capture heterogeneity in agent attributes, characteristics, and behaviours. This study defines heterogeneity in agent-based models as agent granularity: the level of description used to define the agent population. Consequently, this increased complexity can make the already challenging tasks of calibration and parameter identification, even more difficult. Although modellers recognise the significance of model calibration, the process of uniquely determining model input from any given model output is overlooked. This thesis proposes an impact of heterogeneity in agent-based models is parameter non-identification.
