@@ -5,7 +5,7 @@ import seaborn as sns
 # -----------------------------
 # Load simulation database
 # -----------------------------
-df = pd.read_pickle("test.pkl")
+df = pd.read_pickle("data/Appendix_C/test.pkl.zip", compression="zip")
 
 # -----------------------------
 # Aggregate across replicates
