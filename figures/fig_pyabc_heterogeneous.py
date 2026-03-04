@@ -15,7 +15,7 @@ Repo expectation:
 Outputs (5 figures):
 pyabc_hete_distance.png
 hetero-heatmap-pop.png
-pyabc_hete_output.png
+Appendix_B_pyabc_hete_output.png
 pyabc_beta_beta_param.png
 hetero-heatmap-pop.png
 """
@@ -209,7 +209,7 @@ def main():
     pyabc.visualization.plot_epsilons(history, ax=arr_ax[1])
     pyabc.visualization.plot_effective_sample_sizes(history, ax=arr_ax[2])
     fig.tight_layout()
-    save_fig(fig, "pyabc_hete_output.png", dpi=300)
+    save_fig(fig, "Appendix_B_pyabc_hete_output.png", dpi=300)
 
     # -------------------------
     # FIG 4: Beta_One vs Beta_Two scatter (Manuscript Figure 15)
