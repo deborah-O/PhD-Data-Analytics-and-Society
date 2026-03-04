@@ -7,6 +7,12 @@ import pyabc
 import matplotlib.pyplot as plt
 
 # -----------------------------
+# Saving Figures to 'figures/appendix'
+# -----------------------------
+FIG_DIR = os.path.join("figures", "appendix")
+os.makedirs(FIG_DIR, exist_ok=True)
+
+# -----------------------------
 # FILE PATHS
 # -----------------------------
 ZIP_DB = "data/Appendix_C/Beta_05-06.db.zip"
