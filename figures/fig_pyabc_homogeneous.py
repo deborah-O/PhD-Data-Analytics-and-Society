@@ -119,7 +119,7 @@ def main():
     save(fig, "homo-heatmap-pop.png")
 
     # ---------------------------
-    # Figure 3 – ABC diagnostics (Appendix A Figure B.1)
+    # Figure 3 – ABC diagnostics (Appendix B Figure B.1)
     # ---------------------------
     fig, arr_ax = plt.subplots(3,1, figsize=(8,14))
 
