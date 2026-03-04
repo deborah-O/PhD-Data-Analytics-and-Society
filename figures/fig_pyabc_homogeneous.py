@@ -8,13 +8,12 @@ Loads:
 sqlite:///data/pyabc/homo_database_run7.db
 run id = 7
 
-Outputs (6 figures):
-fig_pyabc_homo_01_distance.png
-fig_pyabc_homo_02_kde_evolution.png
-fig_pyabc_homo_03_diagnostics.png
-fig_pyabc_homo_04_credible_intervals.png
-fig_pyabc_homo_05_alpha_beta_scatter.png
-fig_pyabc_homo_06_posterior_heatmap.png
+Outputs (5 figures):
+pyabc_homo_distance.png
+homo-heatmap-pop.png
+AppendixA_pyabc_output_homo.png
+pyabc_alpha_beta_param.png
+homo-heatmap-pop.png
 """
 
 from pathlib import Path
@@ -83,13 +82,13 @@ def main():
     history = abc_continued.history
 
     # ---------------------------
-    # Figure 1 – distance over time
+    # Figure 1 – distance over time (Manuscript Figure 9)
     # ---------------------------
     fig = plot_distance_over_time(history)
-    save(fig, "fig_pyabc_homo_01_distance.png")
+    save(fig, "pyabc_homo_distance.png")
 
     # ---------------------------
-    # Figure 2 – KDE evolution
+    # Figure 2 – KDE evolution (Manuscript Figure 8)
     # ---------------------------
     params = ["Alpha", "Beta"]
 
@@ -117,10 +116,10 @@ def main():
     axes[-1].legend(fontsize="xx-small")
 
     fig.tight_layout()
-    save(fig, "fig_pyabc_homo_02_kde_evolution.png")
+    save(fig, "homo-heatmap-pop.png")
 
     # ---------------------------
-    # Figure 3 – ABC diagnostics
+    # Figure 3 – ABC diagnostics (Appendix A Figure B.1)
     # ---------------------------
     fig, arr_ax = plt.subplots(3,1, figsize=(8,14))
 
@@ -130,18 +129,10 @@ def main():
 
     fig.tight_layout()
 
-    save(fig, "fig_pyabc_homo_03_diagnostics.png")
+    save(fig, "AppendixA_pyabc_output_homo.png")
 
     # ---------------------------
-    # Figure 4 – credible intervals
-    # ---------------------------
-    pyabc.visualization.plot_credible_intervals(history)
-
-    fig = plt.gcf()
-    save(fig, "fig_pyabc_homo_04_credible_intervals.png")
-
-    # ---------------------------
-    # Figure 5 – alpha vs beta scatter
+    # Figure 4 – alpha vs beta scatter (Manuscript Figure 11)
     # ---------------------------
     abc_output = history.get_population_extended()
 
@@ -159,13 +150,13 @@ def main():
     g.set_axis_labels("Beta Parameter", "Alpha Parameter")
     g.fig.suptitle("pyABC: Alpha and Beta Parameters")
 
-    g.savefig(OUTPUT / "fig_pyabc_homo_05_alpha_beta_scatter.png", dpi=300)
+    g.savefig(OUTPUT / "pyabc_alpha_beta_param.png", dpi=300)
     plt.close(g.fig)
 
-    print("Saved: fig_pyabc_homo_05_alpha_beta_scatter.png")
+    print("Saved: pyabc_alpha_beta_param.png")
 
     # ---------------------------
-    # Figure 6 – posterior heatmaps
+    # Figure 5 – posterior heatmaps (Manuscript Figure 10)
     # ---------------------------
     fig = plt.figure(figsize=(20,8))
 
@@ -193,7 +184,7 @@ def main():
 
     fig.tight_layout()
 
-    save(fig, "fig_pyabc_homo_06_posterior_heatmap.png")
+    save(fig, "homo-heatmap-pop.png")
 
     print("All homogeneous pyABC figures generated.")
 
