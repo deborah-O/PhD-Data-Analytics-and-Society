@@ -6,12 +6,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pyabc
 
+
 # -----------------------------
 # USER SETTINGS
 # -----------------------------
 # Put your DB in your GitHub repo under data/appendix_C/ (recommended)
 DB_PATH = "sqlite:///data/Appendix_C/Alpha_Experiment.db"  # <-- change if your filename differs
 RUN_ID = 1                                                 # <-- change if needed
+
+# Save to Path
+FIG_DIR = os.path.join("figures", "appendix")
+os.makedirs(FIG_DIR, exist_ok=True)
 
 # Output (exact filename requested)
 OUTFILE = "alpha_posterior.png"
@@ -83,6 +88,8 @@ def main():
     fig.tight_layout()
 
     # Save exactly as requested
+    OUTFILE = os.path.join(FIG_DIR, "alpha_posterior.png")
+
     fig.savefig(OUTFILE, bbox_inches="tight")
     plt.show()
 
