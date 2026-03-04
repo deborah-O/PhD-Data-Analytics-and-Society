@@ -82,5 +82,9 @@ axes[-1].set_xlabel("Parameter value")
 
 plt.tight_layout()
 
-plt.savefig(OUTFILE, dpi=300, bbox_inches="tight")
+OUTFILE = os.path.join(FIG_DIR, "beta_posterior.png")
+
+fig.savefig(OUTFILE, bbox_inches="tight")
 plt.show()
+
+print(f"Saved: {os.path.abspath(OUTFILE)}")
