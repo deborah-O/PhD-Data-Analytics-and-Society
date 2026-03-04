@@ -1,4 +1,6 @@
-
+# -------------------------------
+# APPENDIX A: FIGURE A.1
+# -------------------------------
 import random
 import numpy as np
 import pandas as pd
@@ -7,7 +9,7 @@ import seaborn as sns
 
 
 # -------------------------------
-# Agent-Based SIS-style model
+# Agent-Based Model
 # -------------------------------
 class Agent:
     def __init__(self, model, group, beta=0.0, alpha=0.0, gamma=0.0):
