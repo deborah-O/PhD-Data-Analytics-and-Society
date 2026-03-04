@@ -1,0 +1,92 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# -----------------------------
+# Load simulation database
+# -----------------------------
+df = pd.read_pickle("test.pkl")
+
+# -----------------------------
+# Aggregate across replicates
+# -----------------------------
+Av = (
+    df.groupby("model_number", as_index=False)
+      .agg(
+          Average=("Average", "mean"),
+          Group1_Av=("Group1_Av", "mean"),
+          Group2_Av=("Group2_Av", "mean")
+      )
+)
+
+# -----------------------------
+# Plot Figure C.1
+# -----------------------------
+sns.set_style("ticks")
+
+plt.figure(figsize=(12,8))
+
+# total infected (green dashed)
+sns.lineplot(
+    data=Av,
+    x="model_number",
+    y="Average",
+    linestyle="--",
+    linewidth=3,
+    color="#16a34a",
+    label="Heterogeneous: Total Infected Fraction"
+)
+
+# homogeneous group 1 (blue line)
+sns.lineplot(
+    data=Av,
+    x="model_number",
+    y="Group2_Av",
+    linewidth=4,
+    color="#1d4ed8",
+    label="Homogeneous: Group 1"
+)
+
+# homogeneous group 2 (magenta)
+sns.lineplot(
+    data=Av,
+    x="model_number",
+    y="Group1_Av",
+    linewidth=4,
+    color="#d946ef",
+    label="Homogeneous: Group 2"
+)
+
+# grey bars
+sns.barplot(
+    data=Av,
+    x="model_number",
+    y="Group1_Av",
+    color="grey",
+    alpha=0.6,
+    linewidth=0,
+    errorbar=None,
+    label="Homogeneous: Group 2 (Infected Fraction)"
+)
+
+# labels
+plt.title("Agent Groups and the Fraction of Infected (Panicked) Agents")
+plt.xlabel(r"$\theta_1$: Fraction of Group 1")
+plt.ylabel("Steady-State Fraction of Infected Agents")
+
+# ticks (0 → 1)
+n = Av["model_number"].max()
+ticks = [0, n*0.2, n*0.4, n*0.6, n*0.8, n]
+labels = ["0","0.2","0.4","0.6","0.8","1.0"]
+plt.xticks(ticks, labels)
+
+plt.ylim(0,0.82)
+
+plt.legend(loc="lower right", fontsize="small")
+
+plt.tight_layout()
+
+# save figure
+plt.savefig("Agent_Group.png", dpi=300)
+
+plt.show()
