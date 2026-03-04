@@ -6,7 +6,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
 
+FIG_DIR = os.path.join("figures", "appendix")
+os.makedirs(FIG_DIR, exist_ok=True)
 
 # -------------------------------
 # Agent-Based Model
@@ -174,9 +177,11 @@ def main():
     g.fig.suptitle("Appendix A1. Alpha sensitivity", fontsize=14)
     plt.tight_layout()
 
-    out = "appendix_A1_alpha_sensitivity.png"
+    out = os.path.join(FIG_DIR, "appendix_A1_alpha_sensitivity.png")
+    
     plt.savefig(out, bbox_inches="tight", dpi=300)
     plt.show()
+    
     print(f"Saved figure to: {out}")
 
 
