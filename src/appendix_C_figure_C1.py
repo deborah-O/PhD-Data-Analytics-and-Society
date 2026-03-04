@@ -1,6 +1,13 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
+
+# -----------------------------
+# Saving Figures to 'figures/appendix'
+# -----------------------------
+FIG_DIR = os.path.join("figures", "appendix")
+os.makedirs(FIG_DIR, exist_ok=True)
 
 # -----------------------------
 # Load simulation database
