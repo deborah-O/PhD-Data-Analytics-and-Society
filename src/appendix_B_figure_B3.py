@@ -1,6 +1,13 @@
 import pyabc
 import matplotlib.pyplot as plt
 from pyabc.visualization import plot_kde_2d
+import os
+
+# -----------------------------
+# Saving Figures to 'figures/appendix'
+# -----------------------------
+FIG_DIR = os.path.join("figures", "appendix")
+os.makedirs(FIG_DIR, exist_ok=True)
 
 # -----------------------------
 # Database
@@ -69,10 +76,8 @@ fig.suptitle("Appendix B – Figure B3: Posterior distributions of α and β", f
 
 plt.tight_layout()
 
-plt.savefig(
-    "Appendix_B_Figure_B3.png",
-    dpi=300,
-    bbox_inches="tight"
-)
+out = os.path.join(FIG_DIR, "Appendix_B_Figure_B3.png")
+plt.savefig( out,dpi=300,bbox_inches="tight")
 
 plt.show()
+print(f"Saved figure to: {out}")
