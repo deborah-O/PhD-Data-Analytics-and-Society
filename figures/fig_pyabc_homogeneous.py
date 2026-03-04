@@ -11,7 +11,7 @@ run id = 7
 Outputs (5 figures):
 pyabc_homo_distance.png
 homo-heatmap-pop.png
-AppendixA_pyabc_output_homo.png
+Appendix_B_pyabc_output_homo.png
 pyabc_alpha_beta_param.png
 homo-heatmap-pop.png
 """
@@ -129,7 +129,7 @@ def main():
 
     fig.tight_layout()
 
-    save(fig, "AppendixA_pyabc_output_homo.png")
+    save(fig, "Appendix_B_pyabc_output_homo.png")
 
     # ---------------------------
     # Figure 4 – alpha vs beta scatter (Manuscript Figure 11)
