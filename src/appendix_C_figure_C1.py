@@ -94,6 +94,9 @@ plt.legend(loc="lower right", fontsize="small")
 plt.tight_layout()
 
 # save figure
-plt.savefig("Agent_Group.png", dpi=300)
+out = os.path.join(FIG_DIR, "Agent_Group.png")
+plt.savefig(out,dpi=300,bbox_inches="tight")
 
 plt.show()
+print(f"Saved figure to: {out}")
+
