@@ -1,3 +1,8 @@
+"""
+Figure 4 – Infected agents comparison
+Source notebook: notebooks/Emotional_Contagion_ABM.ipynb
+"""
+
 import random
 from pathlib import Path
 
