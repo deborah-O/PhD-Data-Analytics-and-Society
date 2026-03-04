@@ -1,0 +1,11 @@
+numpy
+pandas
+matplotlib
+scipy
+pyabc
+jupyter
+seaborn
+sklearn
+random
+statistics
+math
