@@ -5,7 +5,7 @@ Source notebook:
 Ch6_pyABC-Homogeneous.ipynb
 
 Loads:
-sqlite:///data/pyabc/homo_database.db
+sqlite:///data/pyabc/homo_database_run7.db
 run id = 7
 
 Outputs (6 figures):
