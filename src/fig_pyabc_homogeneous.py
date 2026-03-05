@@ -2,7 +2,7 @@
 pyABC calibration – homogeneous model
 
 Source notebook:
-Ch6_pyABC-Homogeneous.ipynb
+pyABC-Homogeneous.ipynb
 
 Loads:
 sqlite:///data/pyabc/homo_database_run7.db
@@ -28,7 +28,7 @@ from pyabc.visualization import plot_kde_2d
 OUTPUT = Path("figures/output")
 OUTPUT.mkdir(parents=True, exist_ok=True)
 
-DB_PATH = "sqlite:///data/pyabc/homo_database.db"
+DB_PATH = "sqlite:///data/pyabc/homo_database_run7.db"
 RUN_ID = 7
 
 
