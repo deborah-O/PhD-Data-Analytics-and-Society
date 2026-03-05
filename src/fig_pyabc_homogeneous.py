@@ -66,38 +66,20 @@ def save(fig, name: str):
     print("Saved:", path)
 
 
-def plot_distance_over_time_sqlite(db_uri: str, run_id: int):
-    """
-    Compute the distance summary over populations directly from SQLite,
-    avoiding History.get_population(t) (which can fail if weights are not normalized).
-    """
-    db_path = _db_file_from_sqlalchemy_uri(db_uri)
-
-    conn = sqlite3.connect(db_path)
-    cur = conn.cursor()
-
-    query = """
-    SELECT pop.t, part.distance
-    FROM populations pop
-    JOIN particles part ON part.population_id = pop.id
-    WHERE pop.abc_smc_id = ?
-    ORDER BY pop.t
-    """
-    rows = cur.execute(query, (run_id,)).fetchall()
-    conn.close()
-
-    if not rows:
-        raise RuntimeError(f"No (t, distance) rows found for run_id={run_id} in {db_path}")
-
-    data = {}
-    for t, d in rows:
-        data.setdefault(int(t), []).append(float(d))
-
-    populations = sorted(data.keys())
+def plot_distance_over_time(history):
+    populations = range(history.max_t + 1)  # or history.n_populations if you prefer
     median_distances, q25, q75 = [], [], []
 
     for t in populations:
-        distances = np.array(data[t], dtype=float)
+        df, w = history.get_distribution(m=0, t=t)
+
+        if "distance" not in df.columns:
+            raise KeyError(
+                f"'distance' not found in get_distribution() at t={t}. "
+                f"Columns: {df.columns.tolist()}"
+            )
+
+        distances = df["distance"].to_numpy()
         median_distances.append(np.median(distances))
         q25.append(np.percentile(distances, 25))
         q75.append(np.percentile(distances, 75))
@@ -112,7 +94,35 @@ def plot_distance_over_time_sqlite(db_uri: str, run_id: int):
     ax.legend(frameon=False)
 
     plt.tight_layout()
-    return fig
+    return fig, adef plot_distance_over_time(history):
+    populations = range(history.max_t + 1)  # or history.n_populations if you prefer
+    median_distances, q25, q75 = [], [], []
+
+    for t in populations:
+        df, w = history.get_distribution(m=0, t=t)
+
+        if "distance" not in df.columns:
+            raise KeyError(
+                f"'distance' not found in get_distribution() at t={t}. "
+                f"Columns: {df.columns.tolist()}"
+            )
+
+        distances = df["distance"].to_numpy()
+        median_distances.append(np.median(distances))
+        q25.append(np.percentile(distances, 25))
+        q75.append(np.percentile(distances, 75))
+
+    fig, ax = plt.subplots(figsize=(8, 5), dpi=100)
+    ax.plot(populations, median_distances, marker="o", color="#d62728", label="Median distance")
+    ax.fill_between(populations, q25, q75, alpha=0.3, color="#ff9896", label="IQR (25–75%)")
+
+    ax.set_xlabel("Population (t)")
+    ax.set_ylabel("Distance (RMSE)")
+    ax.set_title("Distance between Observed and Simulated Data (Over Populations)")
+    ax.legend(frameon=False)
+
+    plt.tight_layout()
+    return fig, ax
 
 
 def main():
@@ -123,7 +133,7 @@ def main():
     # ---------------------------
     # Figure 1 – distance over time (Manuscript Figure 9)
     # ---------------------------
-    fig = plot_distance_over_time_sqlite(DB_PATH, RUN_ID)
+    fig, ax = plot_distance_over_time(history)
     save(fig, "pyabc_homo_distance.png")
 
     # ---------------------------
