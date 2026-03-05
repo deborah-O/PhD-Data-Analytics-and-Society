@@ -5,7 +5,7 @@ scipy
 pyabc
 jupyter
 seaborn
-sklearn
+scikit-learn
 random
 statistics
 math
