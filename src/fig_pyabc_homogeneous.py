@@ -73,6 +73,7 @@ def plot_distance_over_time_sqlite(db_path, run_id):
         JOIN particles p ON p.model_id = m.id
         JOIN samples s   ON s.particle_id = p.id
         WHERE pop.abc_smc_id = ?
+            AND pop.t >=0
         ORDER BY pop.t
     """, (run_id,)).fetchall()
 
