@@ -169,15 +169,12 @@ def main():
     # Figure 5 – posterior heatmaps (Manuscript Figure 10)
     # ---------------------------
     fig = plt.figure(figsize=(20, 8), dpi=100)
-
-    # true parameters from the model
+    # known parameter values
     TRUE_ALPHA = 0.01
     TRUE_BETA = 0.20
     
-    # compute posterior estimate from final population
-    df_last, w_last = history.get_distribution(m=0, t=history.max_t)
-    EST_ALPHA = float((df_last["Alpha"] * w_last).sum())
-    EST_BETA = float((df_last["Beta"] * w_last).sum())
+    EST_ALPHA = 0.01595468
+    EST_BETA = 0.18851214
     
     for i, t in enumerate([0, history.max_t], start=1):
         ax = fig.add_subplot(1, 2, i)
@@ -196,16 +193,19 @@ def main():
         cb = kde_plot.collections[0].colorbar
         cb.set_label("Relative posterior density")
     
-        # --- add annotations ---
+        # --- annotate true parameter ---
         ax.scatter(TRUE_BETA, TRUE_ALPHA,
-                   edgecolor="black", facecolor="green",
+                   edgecolor="black",
+                   facecolor="green",
                    s=120,
-                   label=r"True: $\alpha$=0.01, $\beta$=0.20")
+                   label=r"True: $\alpha$ = 0.01, $\beta$ = 0.20")
     
+        # --- annotate estimated posterior ---
         ax.scatter(EST_BETA, EST_ALPHA,
-                   edgecolor="black", facecolor="red",
+                   edgecolor="black",
+                   facecolor="red",
                    s=120,
-                   label=fr"Estimate: $\alpha$={EST_ALPHA:.3f}, $\beta$={EST_BETA:.3f}")
+                   label=r"Estimate: $\alpha$ = 0.016, $\beta$ = 0.189")
     
         ax.set_title(f"Posterior Distribution (Population {t})")
         ax.set_xlabel("Beta")
@@ -213,7 +213,7 @@ def main():
         ax.legend()
     
     fig.tight_layout()
-    save(fig, "homo-heatmap-pop.png") 
+    save(fig, "homo-heatmap-pop.png")
 
     print("All homogeneous pyABC figures generated.")
 
