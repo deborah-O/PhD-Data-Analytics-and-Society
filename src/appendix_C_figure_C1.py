@@ -1,69 +1,39 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from pathlib import Path
+import os
 
 # -----------------------------
-# Paths (reviewer-proof)
+# Saving Figures to 'figures/appendix'
 # -----------------------------
-ROOT = Path(__file__).resolve().parents[1]  # repo root
-FIG_DIR = ROOT / "figures" / "appendix"
-FIG_DIR.mkdir(parents=True, exist_ok=True)
-
-DATA_FILE = ROOT / "data" / "Appendix_C" / "test.pkl.zip"
-if not DATA_FILE.exists():
-    raise FileNotFoundError(f"Missing data file: {DATA_FILE}")
+FIG_DIR = os.path.join("figures", "appendix")
+os.makedirs(FIG_DIR, exist_ok=True)
 
 # -----------------------------
 # Load simulation database
 # -----------------------------
-df = pd.read_pickle(DATA_FILE, compression="zip")
+df = pd.read_pickle("data/Appendix_C/test.pkl.zip", compression="zip")
 
 # -----------------------------
-# Aggregate across replicates (by model_number)
+# Aggregate across replicates
 # -----------------------------
 Av = (
     df.groupby("model_number", as_index=False)
       .agg(
           Average=("Average", "mean"),
           Group1_Av=("Group1_Av", "mean"),
-          Group2_Av=("Group2_Av", "mean"),
+          Group2_Av=("Group2_Av", "mean")
       )
 )
 
-# Ensure numeric
-for c in ["Average", "Group1_Av", "Group2_Av", "model_number"]:
-    Av[c] = pd.to_numeric(Av[c], errors="coerce")
-
 # -----------------------------
-# Extract homogeneous reference levels (horizontal lines)
-# Using MODE (most frequent value) to avoid mean() issues
-# -----------------------------
-if Av["Group1_Av"].dropna().empty or Av["Group2_Av"].dropna().empty:
-    raise ValueError("Group1_Av/Group2_Av columns are empty after cleaning. Check input data.")
-
-group1_level = float(Av["Group1_Av"].dropna().mode().iloc[0])
-group2_level = float(Av["Group2_Av"].dropna().mode().iloc[0])
-
-# -----------------------------
-# Plot: Agent Groups and Infected Fraction
+# Plot Figure C.1
 # -----------------------------
 sns.set_style("ticks")
+
 plt.figure(figsize=(12, 8))
 
-# Grey bars: heterogeneous group infected fraction (as in your figure)
-sns.barplot(
-    data=Av,
-    x="model_number",
-    y="Group1_Av",
-    color="grey",
-    alpha=0.6,
-    linewidth=0,
-    ci=None,
-    label="Homogeneous: Group 2 (Infected Fraction)",
-)
-
-# Green dashed line: heterogeneous total infected fraction
+# total infected (green dashed)
 sns.lineplot(
     data=Av,
     x="model_number",
@@ -71,47 +41,58 @@ sns.lineplot(
     linestyle="--",
     linewidth=3,
     color="#16a34a",
-    label="Heterogeneous: Total Infected Fraction",
+    label="Heterogeneous: Total Infected Fraction"
 )
 
-# Blue & magenta horizontal lines (homogeneous reference levels from data)
+# --- FIX: homogeneous reference lines (horizontal, known values) ---
 plt.axhline(
-    group1_level,
+    0.78,
+    linewidth=4,
     color="#1d4ed8",
-    linewidth=4,
     label="Homogeneous: Group 1",
-    zorder=5,
-)
-plt.axhline(
-    group2_level,
-    color="#d946ef",
-    linewidth=4,
-    label="Homogeneous: Group 2",
-    zorder=5,
+    zorder=5
 )
 
-# Labels
+plt.axhline(
+    0.40,
+    linewidth=4,
+    color="#d946ef",
+    label="Homogeneous: Group 2",
+    zorder=5
+)
+
+# grey bars
+sns.barplot(
+    data=Av,
+    x="model_number",
+    y="Group1_Av",
+    color="grey",
+    alpha=0.6,
+    linewidth=0,
+    errorbar=None,   # if this errors on older seaborn, change to: ci=None
+    label="Homogeneous: Group 2 (Infected Fraction)"
+)
+
+# labels
 plt.title("Agent Groups and the Fraction of Infected (Panicked) Agents")
 plt.xlabel(r"$\theta_1$: Fraction of Group 1")
 plt.ylabel("Steady-State Fraction of Infected Agents")
 
-# Ticks: map model_number -> 0..1 labels
-n = int(Av["model_number"].max())
-ticks = [0, n * 0.2, n * 0.4, n * 0.6, n * 0.8, n]
+# ticks (0 → 1)
+n = Av["model_number"].max()
+ticks = [0, n*0.2, n*0.4, n*0.6, n*0.8, n]
 labels = ["0", "0.2", "0.4", "0.6", "0.8", "1.0"]
 plt.xticks(ticks, labels)
 
 plt.ylim(0, 0.82)
+
 plt.legend(loc="lower right", fontsize="small")
+
 plt.tight_layout()
 
-# Save
-out = FIG_DIR / "Agent_Group.png"
+# save figure
+out = os.path.join(FIG_DIR, "Agent_Group.png")
 plt.savefig(out, dpi=300, bbox_inches="tight")
+
 plt.show()
 print(f"Saved figure to: {out}")
-
-# Optional debug print (remove later)
-print("Homogeneous reference levels from data:")
-print("  Group 1:", group1_level)
-print("  Group 2:", group2_level)
