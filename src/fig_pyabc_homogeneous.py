@@ -24,6 +24,7 @@ import seaborn as sns
 import pyabc
 from pyabc.visualization import plot_kde_2d
 import re
+import sqlite3
 
 
 OUTPUT = Path("figures/output")
