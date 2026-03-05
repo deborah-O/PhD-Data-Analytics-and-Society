@@ -56,42 +56,6 @@ def _db_file_from_sqlalchemy_uri(uri: str) -> str:
     if uri.startswith("sqlite:////"):
         return "/" + path.lstrip("/")
     return path
-
-def _find_distance_source_sqlite(db_path: Path):
-    conn = sqlite3.connect(str(db_path))
-    cur = conn.cursor()
-
-    tables = [r[0] for r in cur.execute(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';"
-    ).fetchall()]
-
-    def cols(t):
-        return [r[1] for r in cur.execute(f"PRAGMA table_info({t});").fetchall()]
-
-    # Candidate: particles table contains distance?
-    if "particles" in tables and "distance" in cols("particles"):
-        conn.close()
-        return ("particles", "distance", "population_id", "id")
-
-    # Candidate: a distances-like table contains a 'distance' column
-    for t in tables:
-        c = cols(t)
-        if "distance" in c:
-            # find a linking column
-            link = None
-            for candidate in ["particle_id", "population_id"]:
-                if candidate in c:
-                    link = candidate
-                    break
-            if link is not None:
-                conn.close()
-                return (t, "distance", link, None)
-
-    conn.close()
-    raise RuntimeError(
-        "Could not locate a table/column storing 'distance'. "
-        "Run: sqlite3 data/pyabc/homo_database.db '.tables' and inspect schemas."
-    )
     
 def save(fig, name: str):
     path = OUTPUT / name
@@ -99,63 +63,29 @@ def save(fig, name: str):
     plt.close(fig)
     print("Saved:", path)
 
+def plot_distance_over_time_sqlite(db_path, run_id):
+    conn = sqlite3.connect(db_path)
 
-def plot_distance_over_time(db_path: Path, run_id: int):
-    """
-    Notebook-equivalent distance-over-time plot, but computed from the SQLite DB
-    in a schema-aware way (no hard-coded particles.distance).
-    """
-    table, dist_col, link_col, _ = _find_distance_source_sqlite(db_path)
-
-    conn = sqlite3.connect(str(db_path))
-    cur = conn.cursor()
-
-    # populations always gives us t and the population id for a given run
-    # We join depending on whether the distance table links by population_id or particle_id.
-    if link_col == "population_id":
-        query = f"""
-        SELECT pop.t, d.{dist_col}
+    rows = conn.execute("""
+        SELECT pop.t, s.distance
         FROM populations pop
-        JOIN {table} d ON d.population_id = pop.id
+        JOIN models m    ON m.population_id = pop.id
+        JOIN particles p ON p.model_id = m.id
+        JOIN samples s   ON s.particle_id = p.id
         WHERE pop.abc_smc_id = ?
         ORDER BY pop.t
-        """
-        rows = cur.execute(query, (run_id,)).fetchall()
-
-    elif link_col == "particle_id":
-        # need to go populations -> particles -> distances-table
-        query = f"""
-        SELECT pop.t, d.{dist_col}
-        FROM populations pop
-        JOIN particles part ON part.population_id = pop.id
-        JOIN {table} d ON d.particle_id = part.id
-        WHERE pop.abc_smc_id = ?
-        ORDER BY pop.t
-        """
-        rows = cur.execute(query, (run_id,)).fetchall()
-
-    else:
-        conn.close()
-        raise RuntimeError(f"Unexpected link column: {link_col}")
+    """, (run_id,)).fetchall()
 
     conn.close()
 
-    if not rows:
-        raise RuntimeError(f"No distance rows found for run_id={run_id}.")
-
-    # Aggregate like notebook
     data = {}
     for t, d in rows:
         data.setdefault(int(t), []).append(float(d))
 
-    populations = sorted(data.keys())
-    median_distances, q25, q75 = [], [], []
-
-    for t in populations:
-        distances = np.array(data[t], dtype=float)
-        median_distances.append(np.median(distances))
-        q25.append(np.percentile(distances, 25))
-        q75.append(np.percentile(distances, 75))
+    populations = sorted(data)
+    median_distances = [np.median(data[t]) for t in populations]
+    q25 = [np.percentile(data[t], 25) for t in populations]
+    q75 = [np.percentile(data[t], 75) for t in populations]
 
     fig, ax = plt.subplots(figsize=(8, 5), dpi=100)
     ax.plot(populations, median_distances, marker="o", color="#d62728", label="Median distance")
@@ -175,7 +105,7 @@ def main():
     # ---------------------------
     # Figure 1 – distance over time (Manuscript Figure 9)
     # ---------------------------
-    fig, ax = plot_distance_over_time(db_file, RUN_ID)
+    fig, ax = plot_distance_over_time_sqlite(str(db_file), RUN_ID)
     save(fig, "pyabc_homo_distance.png")
 
     # ---------------------------
