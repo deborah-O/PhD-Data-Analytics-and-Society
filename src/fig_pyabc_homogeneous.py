@@ -23,6 +23,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pyabc
 from pyabc.visualization import plot_kde_2d
+import re
 
 
 OUTPUT = Path("figures/output")
@@ -31,6 +32,20 @@ OUTPUT.mkdir(parents=True, exist_ok=True)
 DB_PATH = "sqlite:///data/pyabc/homo_database_run7.db"
 RUN_ID = 7
 
+def _db_file_from_sqlalchemy_uri(uri: str) -> str:
+    # expects sqlite:////absolute/path OR sqlite:///relative/path
+    m = re.match(r"sqlite:(/*)(.*)$", uri)
+    if not m:
+        raise ValueError(f"Unsupported DB uri: {uri}")
+    slashes, path = m.group(1), m.group(2)
+    # for sqlite:///relative/path we want "relative/path"
+    # for sqlite:////abs/path we want "/abs/path"
+    if len(slashes) >= 3:
+        # absolute path has 4 slashes total: sqlite:////...
+        # in our regex slashes includes the ones after colon
+        if uri.startswith("sqlite:////"):
+            return "/" + path.lstrip("/")
+    return path
 
 def save(fig, name):
     path = OUTPUT / name
@@ -38,40 +53,96 @@ def save(fig, name):
     plt.close(fig)
     print("Saved:", path)
 
-def plot_distance_over_time(history):
-    populations = range(history.n_populations)
+def plot_distance_over_time_sqlite(db_uri: str, run_id: int):
+    """
+    Plot distance over populations without using history.get_population(t),
+    by reading populations.t and particle distances directly from SQLite.
+    """
+    db_file = _db_file_from_sqlalchemy_uri(db_uri)
 
-    median_distances = []
-    q25 = []
-    q75 = []
+    con = sqlite3.connect(db_file)
+    cur = con.cursor()
 
-    # Use the extended dataframe so we don't need PyPopulation/weights normalization
-    df_ext = history.get_population_extended()
+    # Check populations schema
+    pop_cols = [r[1] for r in cur.execute("PRAGMA table_info(populations);").fetchall()]
+    if "abc_smc_id" not in pop_cols:
+        raise RuntimeError(f"'populations' table has no abc_smc_id. Columns: {pop_cols}")
+    if "t" not in pop_cols:
+        raise RuntimeError(f"'populations' table has no 't' column. Columns: {pop_cols}")
+    if "id" not in pop_cols:
+        raise RuntimeError(f"'populations' table has no 'id' column. Columns: {pop_cols}")
 
-    # pyABC typically uses column 't' for population index in get_population_extended()
-    t_col = "t" if "t" in df_ext.columns else "population"
-    if "distance" not in df_ext.columns:
-        raise KeyError(f"'distance' not found in population_extended columns: {list(df_ext.columns)}")
+    # Find where distances live: usually particles.distance, sometimes in another table
+    tables = [r[0] for r in cur.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';"
+    ).fetchall()]
 
-    for t in populations:
-        distances = df_ext.loc[df_ext[t_col] == t, "distance"].to_numpy()
-        median_distances.append(np.median(distances))
-        q25.append(np.percentile(distances, 25))
-        q75.append(np.percentile(distances, 75))
+    def table_cols(table):
+        return [r[1] for r in cur.execute(f"PRAGMA table_info({table});").fetchall()]
 
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.plot(populations, median_distances, marker="o",
-            color="#d62728", label="Median distance")
+    # Prefer particles.distance if available
+    dist_query = None
 
-    ax.fill_between(populations, q25, q75,
-                    alpha=0.3, color="#ff9896",
-                    label="IQR (25–75%)")
+    if "particles" in tables:
+        part_cols = table_cols("particles")
+        if "population_id" in part_cols and "distance" in part_cols:
+            dist_query = """
+                SELECT pop.t AS t, part.distance AS distance
+                FROM populations pop
+                JOIN particles part ON part.population_id = pop.id
+                WHERE pop.abc_smc_id = ?
+                ORDER BY pop.t
+            """
 
+    # Fallback: look for a table with population_id and distance
+    if dist_query is None:
+        for tname in tables:
+            cols = table_cols(tname)
+            if "population_id" in cols and "distance" in cols:
+                dist_query = f"""
+                    SELECT pop.t AS t, d.distance AS distance
+                    FROM populations pop
+                    JOIN {tname} d ON d.population_id = pop.id
+                    WHERE pop.abc_smc_id = ?
+                    ORDER BY pop.t
+                """
+                break
+
+    if dist_query is None:
+        con.close()
+        raise RuntimeError(
+            "Could not find a distance source. "
+            "Tried particles.distance and any table with (population_id, distance)."
+        )
+
+    rows = cur.execute(dist_query, (run_id,)).fetchall()
+    con.close()
+
+    if not rows:
+        raise RuntimeError(f"No distance rows found for run_id={run_id}.")
+
+    # Aggregate distance stats per population t
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    t_vals = np.array([r[0] for r in rows], dtype=int)
+    d_vals = np.array([r[1] for r in rows], dtype=float)
+
+    ts = sorted(np.unique(t_vals))
+    med, q25, q75 = [], [], []
+    for t in ts:
+        d = d_vals[t_vals == t]
+        med.append(np.median(d))
+        q25.append(np.percentile(d, 25))
+        q75.append(np.percentile(d, 75))
+
+    fig, ax = plt.subplots(figsize=(8, 5), dpi=100)
+    ax.plot(ts, med, marker="o", color="#d62728", label="Median distance")
+    ax.fill_between(ts, q25, q75, alpha=0.3, color="#ff9896", label="IQR (25–75%)")
     ax.set_xlabel("Population (t)")
     ax.set_ylabel("Distance (RMSE)")
-    ax.set_title("Distance between Observed and Simulated Data")
+    ax.set_title("Distance between Observed and Simulated Data (Over Populations)")
     ax.legend(frameon=False)
-
     plt.tight_layout()
     return fig
 
