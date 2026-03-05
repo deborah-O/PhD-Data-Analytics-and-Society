@@ -26,7 +26,7 @@ import pyabc
 import pyabc.visualization
 from pyabc.visualization import plot_kde_2d
 from matplotlib.lines import Line2D
-
+import sqlite3
 
 # -------------------------
 # Config
@@ -76,18 +76,34 @@ def save_grid(grid, filename: str, dpi: int = 300):
 # -------------------------
 # Figure 1: distance over time (Manuscript Figure 15)
 # -------------------------
-def plot_distance_over_time(history):
-    populations = range(history.n_populations)
-    median_distances = []
-    q25 = []
-    q75 = []
+def plot_distance_over_time_sqlite(db_path, run_id):
+    """
+    Distance over time using stored samples.distance (schema-stable).
+    Avoids history.get_population(t).
+    """
+    conn = sqlite3.connect(db_path)
 
-    for t in populations:
-        pop = history.get_population(t)
-        distances = np.array([p.distance for p in pop.particles])
-        median_distances.append(np.median(distances))
-        q25.append(np.percentile(distances, 25))
-        q75.append(np.percentile(distances, 75))
+    rows = conn.execute("""
+        SELECT pop.t, s.distance
+        FROM populations pop
+        JOIN models m    ON m.population_id = pop.id
+        JOIN particles p ON p.model_id = m.id
+        JOIN samples s   ON s.particle_id = p.id
+        WHERE pop.abc_smc_id = ?
+          AND pop.t >= 0
+        ORDER BY pop.t
+    """, (run_id,)).fetchall()
+
+    conn.close()
+
+    data = {}
+    for t, d in rows:
+        data.setdefault(int(t), []).append(float(d))
+
+    populations = sorted(data)
+    median_distances = [np.median(data[t]) for t in populations]
+    q25 = [np.percentile(data[t], 25) for t in populations]
+    q75 = [np.percentile(data[t], 75) for t in populations]
 
     fig, ax = plt.subplots(figsize=(8, 5), dpi=100)
     ax.plot(populations, median_distances, marker="o", color="#1f77b4", label="Median distance")
@@ -95,10 +111,10 @@ def plot_distance_over_time(history):
 
     ax.set_xlabel("Population (t)")
     ax.set_ylabel("Distance (RMSE)")
-    ax.set_title("Distance between Observed and Simulated Data (Over 12 Populations)")
+    ax.set_title("Distance between Observed and Simulated Data (Over Populations)")
     ax.legend(frameon=False)
-
     plt.tight_layout()
+
     return fig
 
 
@@ -122,7 +138,7 @@ def main():
     # -------------------------
     # FIG 1: distance plot (Manuscript Figure 13)
     # -------------------------
-    fig = plot_distance_over_time(history)
+    fig = plot_distance_over_time_sqlite(str(db_file), RUN_ID)
     save_fig(fig, "pyabc_hete_distance.png", dpi=300)
 
     # -------------------------
