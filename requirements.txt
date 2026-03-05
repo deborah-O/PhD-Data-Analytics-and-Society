@@ -6,7 +6,6 @@ pyabc
 jupyter
 seaborn
 scikit-learn
-random
 statistics
 math
 os
