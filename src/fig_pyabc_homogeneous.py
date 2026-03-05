@@ -38,25 +38,28 @@ def save(fig, name):
     plt.close(fig)
     print("Saved:", path)
 
-
 def plot_distance_over_time(history):
-
     populations = range(history.n_populations)
 
     median_distances = []
     q25 = []
     q75 = []
 
-    for t in populations:
-        pop = history.get_population(t)
-        distances = np.array([p.distance for p in pop.particles])
+    # Use the extended dataframe so we don't need PyPopulation/weights normalization
+    df_ext = history.get_population_extended()
 
+    # pyABC typically uses column 't' for population index in get_population_extended()
+    t_col = "t" if "t" in df_ext.columns else "population"
+    if "distance" not in df_ext.columns:
+        raise KeyError(f"'distance' not found in population_extended columns: {list(df_ext.columns)}")
+
+    for t in populations:
+        distances = df_ext.loc[df_ext[t_col] == t, "distance"].to_numpy()
         median_distances.append(np.median(distances))
         q25.append(np.percentile(distances, 25))
         q75.append(np.percentile(distances, 75))
 
-    fig, ax = plt.subplots(figsize=(8,5))
-
+    fig, ax = plt.subplots(figsize=(8, 5))
     ax.plot(populations, median_distances, marker="o",
             color="#d62728", label="Median distance")
 
@@ -70,7 +73,6 @@ def plot_distance_over_time(history):
     ax.legend(frameon=False)
 
     plt.tight_layout()
-
     return fig
 
 
