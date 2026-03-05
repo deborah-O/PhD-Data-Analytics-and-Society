@@ -2,7 +2,7 @@
 pyABC calibration – heterogeneous model
 
 Source notebook:
-Chp6_pyABC-Heterogeneous.ipynb
+pyABC-Heterogeneous.ipynb
 
 Notebook load logic (exactly):
 db_path = ("sqlite:///" + "hete_database.db")
@@ -10,11 +10,11 @@ abc_continued.load(db_path, 3)
 
 Repo expectation:
 - Put your reduced DB here (recommended):
-  data/pyabc/hete_database_run3.db
+  data/pyabc/hete_database.db
 
 Outputs (5 figures):
 pyabc_hete_distance.png
-hetero-heatmap-pop.png
+ch6_pyabc_posterior.png
 Appendix_B_pyabc_hete_output.png
 pyabc_beta_beta_param.png
 hetero-heatmap-pop.png
@@ -37,9 +37,17 @@ from matplotlib.lines import Line2D
 # -------------------------
 OUTPUT = Path("figures/output")
 OUTPUT.mkdir(parents=True, exist_ok=True)
+from pathlib import Path
 
-# DB PATH
-DB_PATH = "sqlite:///data/pyabc/hete_database_run3.db"
+db_file = Path("data/pyabc/hete_database.db")  # adjust name
+if not db_file.exists():
+    raise FileNotFoundError(
+        "Missing pyABC database.\n"
+        "Download it from Zenodo: https://doi.org/10.5281/zenodo.18879832\n"
+        "and place it at: data/pyabc/hete_database.db"
+    )
+
+DB_PATH = f"sqlite:///{db_file.resolve()}"
 RUN_ID = 3
 
 # True parameters (exactly as in notebook)
@@ -122,7 +130,7 @@ def main():
     save_fig(fig, "pyabc_hete_distance.png", dpi=300)
 
     # -------------------------
-    # FIG 2: Posterior KDE 1D (Manuscript Figure 14)
+    # FIG 2: Posterior KDE 1D (Manuscript Figure 12)
     # -------------------------
     fig, axes = plt.subplots(1, 3, figsize=(22, 8), dpi=100)
 
@@ -199,7 +207,7 @@ def main():
     )
 
     fig.tight_layout(rect=[0, 0, 1, 0.92])
-    save_fig(fig, "hetero-heatmap-pop.png", dpi=300)
+    save_fig(fig, "ch6_pyabc_posterior.png", dpi=300)
 
     # -------------------------
     # FIG 3: diagnostics (Appendix B Figure B.2)
