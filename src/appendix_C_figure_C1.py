@@ -53,23 +53,18 @@ sns.lineplot(
     label="Heterogeneous: Total Infected Fraction"
 )
 
-# homogeneous group 1 (blue line)
-sns.lineplot(
-    data=Av,
-    x="model_number",
-    y="Group2_Av",
-    linewidth=4,
+# horizontal mean lines: homogeneous group 1 (blue line)
+plt.axhline(
+    Av["Group1_Av"].mean(),
     color="#1d4ed8",
+    linewidth=4,
     label="Homogeneous: Group 1"
 )
-
-# homogeneous group 2 (magenta)
-sns.lineplot(
-    data=Av,
-    x="model_number",
-    y="Group1_Av",
-    linewidth=4,
+# horizontal mean lines: homogeneous group 2 (magenta line)
+plt.axhline(
+    Av["Group2_Av"].mean(),
     color="#d946ef",
+    linewidth=4,
     label="Homogeneous: Group 2"
 )
 
