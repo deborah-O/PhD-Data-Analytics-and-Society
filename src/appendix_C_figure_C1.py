@@ -1,18 +1,27 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import os
+from pathlib import Path
 
 # -----------------------------
-# Saving Figures to 'figures/appendix'
+# Resolve paths relative to repo root
 # -----------------------------
-FIG_DIR = os.path.join("figures", "appendix")
-os.makedirs(FIG_DIR, exist_ok=True)
+ROOT = Path(__file__).resolve().parents[1]  # repo root
+FIG_DIR = ROOT / "figures" / "appendix"
+FIG_DIR.mkdir(parents=True, exist_ok=True)
+
+DATA_FILE = ROOT / "data" / "Appendix_C" / "test.pkl.zip"
+if not DATA_FILE.exists():
+    raise FileNotFoundError(
+        f"Missing data file: {DATA_FILE}\n"
+        "Make sure the repository contains data/Appendix_C/test.pkl.zip "
+        "(or update the filename/path in this script)."
+    )
 
 # -----------------------------
 # Load simulation database
 # -----------------------------
-df = pd.read_pickle("data/Appendix_C/test.pkl.zip", compression="zip")
+df = pd.read_pickle(DATA_FILE, compression="zip")
 
 # -----------------------------
 # Aggregate across replicates
@@ -94,9 +103,7 @@ plt.legend(loc="lower right", fontsize="small")
 plt.tight_layout()
 
 # save figure
-out = os.path.join(FIG_DIR, "Agent_Group.png")
-plt.savefig(out,dpi=300,bbox_inches="tight")
-
-plt.show()
+out = FIG_DIR / "Agent_Group.png"
+plt.savefig(out, dpi=300, bbox_inches="tight")
 print(f"Saved figure to: {out}")
 
