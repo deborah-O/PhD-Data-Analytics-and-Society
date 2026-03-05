@@ -94,37 +94,8 @@ def plot_distance_over_time(history):
     ax.legend(frameon=False)
 
     plt.tight_layout()
-    return fig, adef plot_distance_over_time(history):
-    populations = range(history.max_t + 1)  # or history.n_populations if you prefer
-    median_distances, q25, q75 = [], [], []
-
-    for t in populations:
-        df, w = history.get_distribution(m=0, t=t)
-
-        if "distance" not in df.columns:
-            raise KeyError(
-                f"'distance' not found in get_distribution() at t={t}. "
-                f"Columns: {df.columns.tolist()}"
-            )
-
-        distances = df["distance"].to_numpy()
-        median_distances.append(np.median(distances))
-        q25.append(np.percentile(distances, 25))
-        q75.append(np.percentile(distances, 75))
-
-    fig, ax = plt.subplots(figsize=(8, 5), dpi=100)
-    ax.plot(populations, median_distances, marker="o", color="#d62728", label="Median distance")
-    ax.fill_between(populations, q25, q75, alpha=0.3, color="#ff9896", label="IQR (25–75%)")
-
-    ax.set_xlabel("Population (t)")
-    ax.set_ylabel("Distance (RMSE)")
-    ax.set_title("Distance between Observed and Simulated Data (Over Populations)")
-    ax.legend(frameon=False)
-
-    plt.tight_layout()
     return fig, ax
-
-
+    
 def main():
     abc_continued = pyabc.ABCSMC(None, None)
     abc_continued.load(DB_PATH, RUN_ID)
