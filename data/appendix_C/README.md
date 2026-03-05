@@ -1,6 +1,6 @@
 # Appendix C Data
 
-This directory contains the **data files used to reproduce the analyses and figures presented in Appendix C of the manuscript**. The datasets are outputs from the model experiments and inference procedures and are provided to ensure that the Appendix C results are **fully reproducible**.
+This directory contains the **data files used to reproduce the pyABC analyses and figures presented in Appendix C of the manuscript**. The datasets are outputs from the model experiments and inference procedures and are provided to ensure that the Appendix C results are **fully reproducible**.
 
 These files allow the figures in Appendix C to be regenerated without rerunning the full set of simulations.
 
@@ -8,7 +8,6 @@ These files allow the figures in Appendix C to be regenerated without rerunning 
 
 | File name             | Description                                                                                                   | Associated Figure               |
 | --------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| `ABM_Experiment.db`   | Database containing results from the main agent-based model (ABM) experiment used in the Appendix C analysis. | Used across Appendix C analyses |
 | `Alpha_Experiment.db` | Database containing inference outputs for the **alpha parameter experiment**.                                 | Appendix C — Figure C.2         |
 | `Beta_05-06.db.zip`   | Archived database containing posterior samples for the **beta parameter experiment**.                         | Appendix C — Figure C.3         |
 | `test.pkl.zip`        | Processed data used to generate the **agent grouping structure** used in the Appendix analysis.               | Appendix C — Figure C.1         |
