@@ -1,11 +1,15 @@
+"""
+Script for running the panic contagion ABM.
+"""
+
 from abm import Model, set_seed
 from plotting.style import apply_style
 
 
 def main():
+    """Run a basic simulation."""
 
     apply_style()
-
     set_seed(122)
 
     agent_groups = {
