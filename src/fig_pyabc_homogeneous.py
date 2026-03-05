@@ -118,7 +118,7 @@ def main():
     axes[-1].legend(fontsize="xx-small")
 
     fig.tight_layout()
-    save(fig, "homo-heatmap-pop.png")
+    save(fig, "pyabc_posterior_homo.png")
 
     # ---------------------------
     # Figure 3 – ABC diagnostics (Appendix B Figure B.1)
