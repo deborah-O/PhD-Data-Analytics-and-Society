@@ -17,22 +17,21 @@ homo-heatmap-pop.png
 """
 
 from pathlib import Path
+import re
+import sqlite3
+
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pyabc
 from pyabc.visualization import plot_kde_2d
-import re
-import sqlite3
 
 
 OUTPUT = Path("figures/output")
 OUTPUT.mkdir(parents=True, exist_ok=True)
 
-
-
-db_file = Path("data/pyabc/homo_database.db")  # adjust name
+# --- database presence check (Zenodo) ---
+db_file = Path("data/pyabc/homo_database.db")
 if not db_file.exists():
     raise FileNotFoundError(
         "Missing pyABC database.\n"
@@ -43,126 +42,82 @@ if not db_file.exists():
 DB_PATH = f"sqlite:///{db_file.resolve()}"
 RUN_ID = 7
 
+
 def _db_file_from_sqlalchemy_uri(uri: str) -> str:
-    # expects sqlite:////absolute/path OR sqlite:///relative/path
+    """
+    Convert sqlite SQLAlchemy URI to a filesystem path usable by sqlite3.
+    Supports:
+      - sqlite:///relative/path.db
+      - sqlite:////absolute/path.db
+    """
     m = re.match(r"sqlite:(/*)(.*)$", uri)
     if not m:
         raise ValueError(f"Unsupported DB uri: {uri}")
     slashes, path = m.group(1), m.group(2)
-    # for sqlite:///relative/path we want "relative/path"
-    # for sqlite:////abs/path we want "/abs/path"
-    if len(slashes) >= 3:
-        # absolute path has 4 slashes total: sqlite:////...
-        # in our regex slashes includes the ones after colon
-        if uri.startswith("sqlite:////"):
-            return "/" + path.lstrip("/")
+    if uri.startswith("sqlite:////"):
+        return "/" + path.lstrip("/")
     return path
 
-def save(fig, name):
+
+def save(fig, name: str):
     path = OUTPUT / name
     fig.savefig(path, bbox_inches="tight", dpi=300)
     plt.close(fig)
     print("Saved:", path)
 
+
 def plot_distance_over_time_sqlite(db_uri: str, run_id: int):
     """
-    Plot distance over populations without using history.get_population(t),
-    by reading populations.t and particle distances directly from SQLite.
+    Compute the distance summary over populations directly from SQLite,
+    avoiding History.get_population(t) (which can fail if weights are not normalized).
     """
-    db_file = _db_file_from_sqlalchemy_uri(db_uri)
+    db_path = _db_file_from_sqlalchemy_uri(db_uri)
 
-    con = sqlite3.connect(db_file)
-    cur = con.cursor()
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
 
-    # Check populations schema
-    pop_cols = [r[1] for r in cur.execute("PRAGMA table_info(populations);").fetchall()]
-    if "abc_smc_id" not in pop_cols:
-        raise RuntimeError(f"'populations' table has no abc_smc_id. Columns: {pop_cols}")
-    if "t" not in pop_cols:
-        raise RuntimeError(f"'populations' table has no 't' column. Columns: {pop_cols}")
-    if "id" not in pop_cols:
-        raise RuntimeError(f"'populations' table has no 'id' column. Columns: {pop_cols}")
-
-    # Find where distances live: usually particles.distance, sometimes in another table
-    tables = [r[0] for r in cur.execute(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';"
-    ).fetchall()]
-
-    def table_cols(table):
-        return [r[1] for r in cur.execute(f"PRAGMA table_info({table});").fetchall()]
-
-    # Prefer particles.distance if available
-    dist_query = None
-
-    if "particles" in tables:
-        part_cols = table_cols("particles")
-        if "population_id" in part_cols and "distance" in part_cols:
-            dist_query = """
-                SELECT pop.t AS t, part.distance AS distance
-                FROM populations pop
-                JOIN particles part ON part.population_id = pop.id
-                WHERE pop.abc_smc_id = ?
-                ORDER BY pop.t
-            """
-
-    # Fallback: look for a table with population_id and distance
-    if dist_query is None:
-        for tname in tables:
-            cols = table_cols(tname)
-            if "population_id" in cols and "distance" in cols:
-                dist_query = f"""
-                    SELECT pop.t AS t, d.distance AS distance
-                    FROM populations pop
-                    JOIN {tname} d ON d.population_id = pop.id
-                    WHERE pop.abc_smc_id = ?
-                    ORDER BY pop.t
-                """
-                break
-
-    if dist_query is None:
-        con.close()
-        raise RuntimeError(
-            "Could not find a distance source. "
-            "Tried particles.distance and any table with (population_id, distance)."
-        )
-
-    rows = cur.execute(dist_query, (run_id,)).fetchall()
-    con.close()
+    query = """
+    SELECT pop.t, part.distance
+    FROM populations pop
+    JOIN particles part ON part.population_id = pop.id
+    WHERE pop.abc_smc_id = ?
+    ORDER BY pop.t
+    """
+    rows = cur.execute(query, (run_id,)).fetchall()
+    conn.close()
 
     if not rows:
-        raise RuntimeError(f"No distance rows found for run_id={run_id}.")
+        raise RuntimeError(f"No (t, distance) rows found for run_id={run_id} in {db_path}")
 
-    # Aggregate distance stats per population t
-    import numpy as np
-    import matplotlib.pyplot as plt
+    data = {}
+    for t, d in rows:
+        data.setdefault(int(t), []).append(float(d))
 
-    t_vals = np.array([r[0] for r in rows], dtype=int)
-    d_vals = np.array([r[1] for r in rows], dtype=float)
+    populations = sorted(data.keys())
+    median_distances, q25, q75 = [], [], []
 
-    ts = sorted(np.unique(t_vals))
-    med, q25, q75 = [], [], []
-    for t in ts:
-        d = d_vals[t_vals == t]
-        med.append(np.median(d))
-        q25.append(np.percentile(d, 25))
-        q75.append(np.percentile(d, 75))
+    for t in populations:
+        distances = np.array(data[t], dtype=float)
+        median_distances.append(np.median(distances))
+        q25.append(np.percentile(distances, 25))
+        q75.append(np.percentile(distances, 75))
 
     fig, ax = plt.subplots(figsize=(8, 5), dpi=100)
-    ax.plot(ts, med, marker="o", color="#d62728", label="Median distance")
-    ax.fill_between(ts, q25, q75, alpha=0.3, color="#ff9896", label="IQR (25–75%)")
+    ax.plot(populations, median_distances, marker="o", color="#d62728", label="Median distance")
+    ax.fill_between(populations, q25, q75, alpha=0.3, color="#ff9896", label="IQR (25–75%)")
+
     ax.set_xlabel("Population (t)")
     ax.set_ylabel("Distance (RMSE)")
     ax.set_title("Distance between Observed and Simulated Data (Over Populations)")
     ax.legend(frameon=False)
+
     plt.tight_layout()
     return fig
 
 
 def main():
-
     abc_continued = pyabc.ABCSMC(None, None)
     abc_continued.load(DB_PATH, RUN_ID)
-
     history = abc_continued.history
 
     # ---------------------------
@@ -175,44 +130,34 @@ def main():
     # Figure 2 – KDE evolution (Manuscript Figure 8)
     # ---------------------------
     params = ["Alpha", "Beta"]
+    fig, axes = plt.subplots(1, 2, figsize=(12, 4), dpi=100)
 
-    fig, axes = plt.subplots(1,2, figsize=(12,4))
-
-    for i,param in enumerate(params):
-
+    for i, param in enumerate(params):
         ax = axes[i]
-
         for t in range(history.max_t + 1):
-
             df, w = history.get_distribution(m=0, t=t)
-
             pyabc.visualization.plot_kde_1d(
                 df, w,
                 x=param,
                 ax=ax,
                 label=f"PDF t={t}",
-                alpha=1.0 if t==0 else float(t)/history.max_t,
-                color="black" if t==history.max_t else None
+                alpha=1.0 if t == 0 else float(t) / history.max_t,
+                color="black" if t == history.max_t else None
             )
-
         ax.set_title(param)
 
     axes[-1].legend(fontsize="xx-small")
-
     fig.tight_layout()
     save(fig, "pyabc_posterior_homo.png")
 
     # ---------------------------
     # Figure 3 – ABC diagnostics (Appendix B Figure B.1)
     # ---------------------------
-    fig, arr_ax = plt.subplots(3,1, figsize=(8,14))
-
+    fig, arr_ax = plt.subplots(3, 1, figsize=(8, 14), dpi=100)
     pyabc.visualization.plot_sample_numbers(history, ax=arr_ax[0])
     pyabc.visualization.plot_epsilons(history, ax=arr_ax[1])
     pyabc.visualization.plot_effective_sample_sizes(history, ax=arr_ax[2])
-
     fig.tight_layout()
-
     save(fig, "Appendix_B_pyabc_output_homo.png")
 
     # ---------------------------
@@ -221,33 +166,29 @@ def main():
     abc_output = history.get_population_extended()
 
     sns.set_style("whitegrid", {"axes.grid": False})
-
     g = sns.lmplot(
         y="par_Alpha",
         x="par_Beta",
         data=abc_output,
-        scatter_kws={"s":80, "alpha":0.9},
+        scatter_kws={"s": 80, "alpha": 0.9},
         height=8,
         ci=None
     )
-
     g.set_axis_labels("Beta Parameter", "Alpha Parameter")
     g.fig.suptitle("pyABC: Alpha and Beta Parameters")
 
-    g.savefig(OUTPUT / "pyabc_alpha_beta_param.png", dpi=300)
+    out_path = OUTPUT / "pyabc_alpha_beta_param.png"
+    g.savefig(out_path, dpi=300)
     plt.close(g.fig)
-
-    print("Saved: pyabc_alpha_beta_param.png")
+    print("Saved:", out_path)
 
     # ---------------------------
     # Figure 5 – posterior heatmaps (Manuscript Figure 10)
     # ---------------------------
-    fig = plt.figure(figsize=(20,8))
+    fig = plt.figure(figsize=(20, 8), dpi=100)
 
-    for i,t in enumerate([0, history.max_t], start=1):
-
-        ax = fig.add_subplot(1,2,i)
-
+    for i, t in enumerate([0, history.max_t], start=1):
+        ax = fig.add_subplot(1, 2, i)
         kde_plot = plot_kde_2d(
             *history.get_distribution(m=0, t=t),
             "Beta",
@@ -258,16 +199,13 @@ def main():
             colorbar=True,
             ax=ax
         )
-
         cb = kde_plot.collections[0].colorbar
         cb.set_label("Relative posterior density")
-
         ax.set_title(f"Posterior Distribution (Population {t})")
         ax.set_xlabel("Beta")
         ax.set_ylabel("Alpha")
 
     fig.tight_layout()
-
     save(fig, "homo-heatmap-pop.png")
 
     print("All homogeneous pyABC figures generated.")
