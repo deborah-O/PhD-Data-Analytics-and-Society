@@ -4,13 +4,9 @@ pyABC calibration – heterogeneous model
 Source notebook:
 pyABC-Heterogeneous.ipynb
 
-Notebook load logic (exactly):
-db_path = ("sqlite:///" + "hete_database.db")
-abc_continued.load(db_path, 3)
-
-Repo expectation:
-- Put your reduced DB here (recommended):
-  data/pyabc/hete_database.db
+Loads:
+sqlite:///data/pyabc/hete_database.db
+run id = 3
 
 Outputs (5 figures):
 pyabc_hete_distance.png
