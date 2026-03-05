@@ -10,7 +10,7 @@ run id = 7
 
 Outputs (5 figures):
 pyabc_homo_distance.png
-homo-heatmap-pop.png
+pyabc_posterior_homo.png
 Appendix_B_pyabc_output_homo.png
 pyabc_alpha_beta_param.png
 homo-heatmap-pop.png
