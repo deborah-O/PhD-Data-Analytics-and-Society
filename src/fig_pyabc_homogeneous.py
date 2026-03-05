@@ -157,7 +157,7 @@ def main():
     # ---------------------------
     # Figure 1 – distance over time (Manuscript Figure 9)
     # ---------------------------
-    fig = plot_distance_over_time(history)
+    fig = plot_distance_over_time_sqlite(DB_PATH, RUN_ID)
     save(fig, "pyabc_homo_distance.png")
 
     # ---------------------------
