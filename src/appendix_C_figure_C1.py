@@ -53,16 +53,21 @@ sns.lineplot(
     label="Heterogeneous: Total Infected Fraction"
 )
 
-# horizontal mean lines: homogeneous group 1 (blue line)
+# compute steady-state group infection levels from data
+group1_level = Av["Group1_Av"].mean()
+group2_level = Av["Group2_Av"].mean()
+
+# homogeneous group 1 (blue horizontal line)
 plt.axhline(
-    Av["Group1_Av"].mean(),
+    group1_level,
     color="#1d4ed8",
     linewidth=4,
     label="Homogeneous: Group 1"
 )
-# horizontal mean lines: homogeneous group 2 (magenta line)
+
+# homogeneous group 2 (magenta horizontal line)
 plt.axhline(
-    Av["Group2_Av"].mean(),
+    group2_level,
     color="#d946ef",
     linewidth=4,
     label="Homogeneous: Group 2"
