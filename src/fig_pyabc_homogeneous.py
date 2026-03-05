@@ -5,7 +5,7 @@ Source notebook:
 pyABC-Homogeneous.ipynb
 
 Loads:
-sqlite:///data/pyabc/homo_database_run7.db
+sqlite:///data/pyabc/homo_database.db
 run id = 7
 
 Outputs (5 figures):
@@ -30,7 +30,17 @@ import sqlite3
 OUTPUT = Path("figures/output")
 OUTPUT.mkdir(parents=True, exist_ok=True)
 
-DB_PATH = "sqlite:///data/pyabc/homo_database_run7.db"
+
+
+db_file = Path("data/pyabc/homo_database.db")  # adjust name
+if not db_file.exists():
+    raise FileNotFoundError(
+        "Missing pyABC database.\n"
+        "Download it from Zenodo: https://doi.org/10.5281/zenodo.18879832\n"
+        "and place it at: data/pyabc/homo_database.db"
+    )
+
+DB_PATH = f"sqlite:///{db_file.resolve()}"
 RUN_ID = 7
 
 def _db_file_from_sqlalchemy_uri(uri: str) -> str:
