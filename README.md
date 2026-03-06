@@ -1,18 +1,89 @@
-# Heterogeneity in Agent-based Models 
-This repository contains research and scripts for the PhD thesis, focusing on Agent-Based Models (ABMs) and model calibration techniques. This work explores how heterogeneity among agents affects model calibration and parameter identification using Bayesian computation and emotional contagion modeling.
+# PhD Data Analytics and Society
 
-## Research Highlights
-- Examines how agent heterogeneity affects calibration accuracy.
-- Discusses implications of parameter non-identification on policy decisions.
+This repository contains the **Agent-Based Model (ABM)**, calibration workflows, and analysis pipeline used in the research project on **emotional contagion dynamics and behavioural diffusion**.
 
-## Contents
-1. [Emotional_Contagion.ipynb]([https://www.example.com](https://github.com/deborah-O/PhD-Data-Analytics-and-Society/blob/main/Emotional_Contagion.ipynb)): Jupyter Notebook on emotional contagion in heterogeneous vs. homogeneous agent models.
-2. [pyABC-Heterogeneous.ipynb](https://github.com/deborah-O/PhD-Data-Analytics-and-Society/blob/main/pyABC-Heterogeneous.ipynb) and [pyABC-Homogeneous.ipynb](https://github.com/deborah-O/PhD-Data-Analytics-and-Society/blob/main/pyABC-Homogeneous.ipynb): Notebooks for Bayesian calibration in heterogeneous and homogeneous scenarios.
+The project combines:
 
-## Project Summary
-Agent-based models are an incredibly flexible tool that among other things, allow modellers to capture heterogeneity in agent attributes, characteristics, and behaviours. This study defines heterogeneity in agent-based models as agent granularity: the level of description used to define the agent population. Consequently, this increased complexity can make the already challenging tasks of calibration and parameter identification, even more difficult. Although modellers recognise the significance of model calibration, the process of uniquely determining model input from any given model output is overlooked. This thesis proposes an impact of heterogeneity in agent-based models is parameter non-identification.
- 
-To this end, this research conducts a thorough examination of agent heterogeneity by the comparative study of homogeneous and heterogeneous scenarios in agent-based models. Using an emotional contagion case study model and approximate Bayesian computation calibration, it finds that the introduction of heterogeneity results in inaccurate parameter calibration compared to the homogeneous case. This study proposes the inaccurate results as the consequence of a failure to uniquely distinguish the effect of additional parameters in the model. Furthermore, failing to identify model parameters limits the predictive or forecasting power of the agent-based model. A simple case study is used to demonstrate that the use of unidentifiable models to inform real-world governmental and social policies can lead to erroneous conclusions and potentially unsound interventions.
- 
-## License
-This project is licensed under the MIT License.
+- **Agent-Based Modelling (ABM)**
+- **Approximate Bayesian Computation (ABC) using pyABC**
+- **Computational experiments and sensitivity analysis**
+
+The repository provides the **full modelling framework and reproducibility pipeline** used to generate the results presented in the associated research outputs.
+
+---
+
+# Repository Structure
+.
+├── data/              # Data files and ABC calibration databases
+├── figures/           # Generated figures
+│   └── appendix/      # Additional figures used in appendices
+│
+├── notebooks/         # Interactive notebooks demonstrating the model and calibration
+│   ├── Emotional_Contagion_ABM.ipynb
+│   ├── pyABC-Homogeneous.ipynb
+│   └── pyABC-Heterogeneous.ipynb
+│
+├── scripts/           # Reproducibility and pipeline scripts
+│   
+│
+├── src/               # Core model implementation
+│   ├── abm/           # Agent-based model
+│   └── plotting/      # Plotting utilities
+│
+├── results/           # Executed notebooks and intermediate results
+│
+├── reproduce/         # Scripts for generating figures used in the manuscript
+│
+├── logs              
+│
+├── requirements.txt   # Python dependencies
+└── README.md
+___
+
+---
+
+# Model Overview
+
+The model simulates **emotional contagion processes within a population of agents**.
+
+Agents interact and may transition between behavioural states according to probabilistic rules governing:
+
+- baseline susceptibility  
+- peer influence  
+- recovery dynamics  
+
+The model allows both:
+
+- **Homogeneous populations** (single parameter set)
+- **Heterogeneous populations** (multiple behavioural groups)
+
+Calibration of model parameters is performed using **Approximate Bayesian Computation (ABC)** with the `pyABC` library.
+
+---
+
+# Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/YOUR_USERNAME/PhD-Data-Analytics-and-Society.git
+cd PhD-Data-Analytics-and-Society
+```
+Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+___
+
+# Running the Full Analysis Pipeline
+
+The complete modelling and analysis workflow can be reproduced using the pipeline script:
+```bash scripts/run_pipeline.sh
+```
+
+This script will:
+- Execute the modelling notebooks
+- Run calibration experiments
+- Generate figures and outputs
+- Store results in the results/ and figures/ directories
+
