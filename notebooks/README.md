@@ -8,7 +8,7 @@ These notebooks are intended to help readers understand the **model structure, e
 
 | Notebook                    | Description                                                                                                        |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `Emotional_Contagion.ipynb` | Implementation of the core **Agent-Based Model (ABM)** used to simulate emotional contagion dynamics among agents. |
+| `Emotional_Contagion_ABM.ipynb` | Implementation of the core **Agent-Based Model (ABM)** used to simulate emotional contagion dynamics among agents. |
 | `pyABC-Homogeneous.ipynb`   | Notebook demonstrating the **pyABC calibration workflow for the homogeneous model configuration**.                 |
 | `pyABC-Heterogeneous.ipynb` | Notebook demonstrating the **pyABC calibration workflow for the heterogeneous model configuration**.               |
 
